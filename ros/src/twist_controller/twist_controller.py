@@ -20,6 +20,9 @@ class Controller(object):
             max_lat_accel,
             max_steer_angle):
         # TODO: Implement
+
+        self.last_time = rospy.get_time()
+
         self.yaw_controller = YawController(wheel_base, steer_ratio, 0.1, max_lat_accel, max_steer_angle)
 
         self.vehicle_mass = vehicle_mass,
@@ -66,12 +69,15 @@ class Controller(object):
         throttle = self.throttle_controller.step(vel_error, sample_time)
         brake = 0
 
-        if linear_vel == 0. and current_vel < 0.1:
-            throttle = 0
-            brake = 400
-        elif throttle < .1 and vel_error < 0:
-            throttle = 0
-            decel = max(vel_error, self.decel_limit)
-            brake = abs(decel) * self.vehicle_mass * self.wheel_radius
+        try:
+            if linear_vel == 0. and current_vel < 0.1:
+                throttle = 0
+                brake = 400
+            elif throttle < .1 and vel_error < 0:
+                throttle = 0
+                decel = max(vel_error, self.decel_limit)
+                brake = abs(decel) * self.vehicle_mass * self.wheel_radius
+        except:
+            return 0., 0., 0.
 
         return throttle, brake, steering

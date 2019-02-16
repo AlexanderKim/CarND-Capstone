@@ -74,7 +74,7 @@ class DBWNode(object):
 
         self.current_vel = None
         self.curr_ang_vel = None
-        self.dbw_enabled = None
+        self.dbw_enabled = True # was None
         self.linear_vel = None
         self.angular_vel = None
         self.throttle = self.steering = self.brake = 0
@@ -90,7 +90,7 @@ class DBWNode(object):
                 self.throttle, self.brake, self.steering = self.controller.control(self.current_vel,
                                                                 self.dbw_enabled,
                                                                 self.linear_vel,
-                                                                self.dbw_enabled)
+                                                                self.angular_vel)
             if self.dbw_enabled:
               self.publish(self.throttle, self.brake, self.steering)
             rate.sleep()
