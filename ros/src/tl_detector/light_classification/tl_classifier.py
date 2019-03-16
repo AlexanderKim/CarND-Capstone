@@ -22,6 +22,8 @@ from keras import losses, optimizers, regularizers
 from keras.models import load_model
 from keras.preprocessing import image
 
+graph = tf.get_default_graph()
+
 
 def load_image_into_numpy_array(image):
   (im_width, im_height) = image.size
@@ -128,14 +130,23 @@ class TLClassifier(object):
             crop = image_np[top:bottom, left:right]
             crop = cv2.resize(crop, (32, 64))
 
-            predictions = self.loaded_model.predict(np.expand_dims(crop, axis=0))
+            global graph
+            with graph.as_default():
+                predictions = self.loaded_model.predict(np.expand_dims(crop, axis=0))
+            
+            predictions = predictions[0]
+            rospy.logerr("Predictions: {}".format(predictions))
 
+            
             score_treshold = 0.8
             if predictions[0] > score_treshold:
+                rospy.logerr("Predictions[0]: {}".format(predictions[0]))
                 light = TrafficLight.GREEN
             if predictions[1] > score_treshold:
+                rospy.logerr("Predictions[1]: {}".format(predictions[1]))
                 light = TrafficLight.YELLOW
             if predictions[2] > score_treshold:
+                rospy.logerr("Predictions[2]: {}".format(predictions[2]))
                 light = TrafficLight.RED
     
             rospy.logerr("Light predicted: {}".format(light))
