@@ -22,7 +22,7 @@ from keras import losses, optimizers, regularizers
 from keras.models import load_model
 from keras.preprocessing import image
 
-graph = tf.get_default_graph()
+# graph = tf.get_default_graph()
 
 
 def load_image_into_numpy_array(image):
@@ -81,7 +81,7 @@ class TLClassifier(object):
 
         #Todo: move to config
         dir = '/capstone/ros/src/tl_detector/light_classification/'
-        self.loaded_model = load_model(dir + 'traffic_light_classifier.h5')
+        # self.loaded_model = load_model(dir + 'traffic_light_classifier.h5')
 
         PATH_TO_FROZEN_GRAPH = dir + 'frozen_inference_graph.pb'
         self.detection_graph = tf.Graph()
@@ -130,24 +130,42 @@ class TLClassifier(object):
             crop = image_np[top:bottom, left:right]
             crop = cv2.resize(crop, (32, 64))
 
-            global graph
-            with graph.as_default():
-                predictions = self.loaded_model.predict(np.expand_dims(crop, axis=0))
+            top_pixel = crop[15, 16]
+            print("Top pixel: {}".format(top_pixel))
+
+            middle_pixel = crop[30, 16]
+            print("Middle pixel: {}".format(middle_pixel))
+
+            bottom_pixel = crop[45, 16]
+            print("Bottom pixel: {}".format(bottom_pixel))
+
+            color_treshold = 235
+            if bottom_pixel[1] >= color_treshold:
+                light = TrafficLight.GREEN
+            if top_pixel[0] >= color_treshold:
+                light = TrafficLight.RED
+            if middle_pixel[0] >= color_treshold and middle_pixel[1] >=color_treshold:
+                light = TrafficLight.YELLOW
+
+
+            # global graph
+            # with graph.as_default():
+            #     predictions = self.loaded_model.predict(np.expand_dims(crop, axis=0))
             
-            predictions = predictions[0]
-            rospy.logerr("Predictions: {}".format(predictions))
+            # predictions = predictions[0]
+            # rospy.logerr("Predictions: {}".format(predictions))
 
             
-            score_treshold = 0.8
-            if predictions[0] > score_treshold:
-                rospy.logerr("Predictions[0]: {}".format(predictions[0]))
-                light = TrafficLight.GREEN
-            if predictions[1] > score_treshold:
-                rospy.logerr("Predictions[1]: {}".format(predictions[1]))
-                light = TrafficLight.YELLOW
-            if predictions[2] > score_treshold:
-                rospy.logerr("Predictions[2]: {}".format(predictions[2]))
-                light = TrafficLight.RED
+            # score_treshold = 0.8
+            # if predictions[0] > score_treshold:
+            #     rospy.logerr("Predictions[0]: {}".format(predictions[0]))
+            #     light = TrafficLight.GREEN
+            # if predictions[1] > score_treshold:
+            #     rospy.logerr("Predictions[1]: {}".format(predictions[1]))
+            #     light = TrafficLight.YELLOW
+            # if predictions[2] > score_treshold:
+            #     rospy.logerr("Predictions[2]: {}".format(predictions[2]))
+            #     light = TrafficLight.RED
     
             rospy.logerr("Light predicted: {}".format(light))
 
